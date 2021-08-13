@@ -17,10 +17,6 @@ sublab<-sublab %>% arrange(case_first_med,subgroup) %>%
   group_by(subgroup) %>% mutate(rank=1:n(), label_rank=paste(label," [",rank,"]",sep=""))
 sublab<-sublab %>% filter(subgroup==disease) %>% select(diag3,label_rank)
 
-# node - subgroup
-#disease <-"Myelomonocytic_over12"
-#nodes<-read.csv(paste(dir,"/data/adjusted/node_210811_",disease,".csv",sep=""),header=T)
-
 # node - total
 nodes<-read.csv(paste(dir,"/data/adjusted/node_total_RRmorethan10_210811.csv",sep=""),header=T)
 
@@ -32,24 +28,15 @@ nodes<-merge(nodes,sublab,by.x=c("label"),by.y=c("label_rank"),all.x=T)
 nodesinfo<-read.csv(paste(dir,"/data/adjusted/210729_diag_tot_diff_summary.csv",sep=""),header=T) %>%
   select(diag3,n) %>% mutate(group=substr(diag3,1,1)) %>% rename(value=n)
 
-# subgroup
-# nodesinfo<-read.csv(paste(dir,"/data/adjusted/210729_diag_tot_diff_summary.csv",sep=""),header=T) %>%
-#   select(diag3,n) %>% mutate(group=substr(diag3,1,1)) %>% rename(value=n)
-
-##
-#nodes2<-merge(nodes,nodesinfo,by.x=c("diag3"),by.y=c("node"),all.x=T) %>% arrange(Id)
 nodes2<-merge(nodes,nodesinfo,by=c("diag3"),all.x=T) %>% arrange(Id)
 nodes2<-nodes2[,c("Id","label","group","value","diag3")]
 nodes2$font.size = 50
-#nodes2$group<-as.factor(substr(nodes2$diag3,1,1))
 
 nodeval <- nodes2 %>% distinct(Id,value) %>% 
   rename(count=value)
 
 # Edges
-#edges<-read.csv(paste(dir,"/data/adjusted/edge_210811_",disease,".csv",sep=""),header=T)
 edges<-read.csv(paste(dir,"/data/adjusted/edge_total_RRmorethan10_210811.csv",sep=""),header=T)
-# edges<-read.csv(paste(dir,"/edge_210611_Myelomonocytic_over12.csv",sep=""),header=T)
 edges<-edges[,c("Source","Target","logWeight")]
 
 names(edges)<-c("from","to","weight")
@@ -70,43 +57,16 @@ names(nodes2)[1]<-"Id"
 nodes2<-nodes2 %>% filter(Id %in% uniq_node) 
 names(nodes2)[1]<-"id"
 
-# nodes2$value=ifelse(is.na(nodes2$value),1,nodes2$value)
-# nodes$group=ifelse(is.na(nodes$group!="significant"&nodes$group!="Notsig"),"Notsig",nodes$group)
-
-# edges<-edges %>% filter(from!=10) # Non-Hodgkin에서 Id 10인 것이 문제됨!
-# edges<-edges %>% filter(to!=18) # Myelomonocytic_under12에서 Id 18인 것이 문제됨!
-# edges<-edges %>% filter(to!=c(6,16,18)) # Hodgkin에서 Id 6,16,18인 것이 문제됨!
-
-#routes_tidy <- tbl_graph(nodes = nodes, edges = edges, directed = TRUE)
 
 # https://rdrr.io/cran/visNetwork/src/inst/examples/all_examples.R
 set.seed(123456)
 
 network<-visNetwork(nodes2, edges, idToLabel=T,width="100%", height = "1000px") %>%
   visPhysics(solver = "forceAtlas2Based", forceAtlas2Based = list(gravitationalConstant = -10)) %>%
-  #visInteraction(dragNodes = FALSE, dragView = FALSE, zoomView = FALSE) %>% #freeze
   visIgraphLayout(layout = 'layout_with_fr',type="full") %>% #visIgraphLayout(layout = "layout_with_sugiyama")
   visNodes(color = list(highlight = "yellow",label_context="red"),borderWidth = 2, size=100,
            scaling = list(label = list(enabled = TRUE))) %>% ##border = "grey", background = "lightblue",
-  # visGroups(groupname = "J") %>% #, color = "cadetblue") %>% #,shadow = list(enabled = TRUE)
-  # visGroups(groupname = "L") %>% #, color = "mistyrose") %>%
-  # visGroups(groupname = "H") %>% #, color = "coral") %>%
-  # visGroups(groupname = "A") %>% #, color = "mediumpurple") %>%
-  # visGroups(groupname = "K") %>% #, color = "dodgerblue") %>%
-  # visGroups(groupname = "N") %>% #, color = "darkseagreen") %>%
-  # visGroups(groupname = "G") %>% #, color = "gold") %>%
-  # visGroups(groupname = "S") %>% #, color = "darkorange") %>%
-  # visGroups(groupname = "P") %>% #, color = "indianred") %>%
-  # visGroups(groupname = "Z") %>%
-  # visGroups(groupname = "B") %>%
-# visGroups(groupname = "R") %>%
-# visGroups(groupname = "F") %>%
-# visGroups(groupname = "Q") %>%
-# visGroups(groupname = "M") %>%
-# visGroups(groupname = "E") %>%
-# visGroups(groupname = "I") %>%
-# visGroups(groupname = "D") %>%
-visOptions(highlightNearest = list(enabled=TRUE, labelOnly = TRUE, hover = TRUE,degree = list(from = 1, to = 1)),
+  visOptions(highlightNearest = list(enabled=TRUE, labelOnly = TRUE, hover = TRUE,degree = list(from = 1, to = 1)),
            nodesIdSelection = FALSE, selectedBy ="group") %>%
   visLegend() %>%
   visEdges(arrows = "to", color=list(color="lightgrey",highlight="yellow"))
@@ -132,7 +92,6 @@ gr<-"Lymphoid"
 # [1] Hodgkin                Lymphoid               Myelomonocytic         Myelomonocytic_over12 
 # [5] Myelomonocytic_under12 Non-Hodgkin   
 
-
 # subgroup 
 sublab<-read.csv(paste(dir,"/data/adjusted/210811_case,control_subgroup_summary.csv",sep=""),header=T)
 sublab<-sublab %>% arrange(case_first_med,subgroup) %>% 
@@ -140,12 +99,9 @@ sublab<-sublab %>% arrange(case_first_med,subgroup) %>%
 sublab<-sublab %>% filter(subgroup==disease) %>% select(diag3,label_rank)
 
 # node - subgroup
-#disease <-"Myelomonocytic_under12"
 nodes<-read.csv(paste(dir,"/data/adjusted/node_210811_",disease,".csv",sep=""),header=T)
 nodes<-nodes[,c("Id","label")]
 nodes<-merge(nodes,sublab,by.x=c("label"),by.y=c("label_rank"),all.x=T)
-
-# first_diag total에 대해서는 데이터 없음!
 
 nodesinfo<-read.csv(paste(dir,"/data/210615_case_survival_within_subgroup.csv",sep=""),header=T) %>%
   rename(subgroup=disease) %>%
@@ -164,8 +120,6 @@ nodeval <- nodes2 %>% distinct(Id,value) %>%
 
 # Edges
 edges<-read.csv(paste(dir,"/data/adjusted/edge_210811_",disease,".csv",sep=""),header=T)
-#edges<-read.csv(paste(dir,"/data/adjusted/edge_total_RRmorethan10_210811.csv",sep=""),header=T)
-# edges<-read.csv(paste(dir,"/edge_210611_Myelomonocytic_over12.csv",sep=""),header=T)
 edges<-edges[,c("Source","Target","Weight")]
 
 names(edges)<-c("from","to","weight")
@@ -190,13 +144,11 @@ names(nodes2)[1]<-"id"
 nodes2 <- nodes2 %>%
   mutate(value=ifelse(is.na(value),10,value), group=ifelse(is.na(group),substr(diag3,1,1),group))
 
-
 # https://rdrr.io/cran/visNetwork/src/inst/examples/all_examples.R
 # https://www.rpubs.com/gregt95/dataviz2
 set.seed(123456)
 network<-visNetwork(nodes2, edges2, idToLabel=T,width="100%", height = "1000px") %>%
   visPhysics(solver = "forceAtlas2Based", forceAtlas2Based = list(gravitationalConstant = -10)) %>%
-  #visInteraction(dragNodes = FALSE, dragView = FALSE, zoomView = FALSE) %>% #freeze
   visIgraphLayout(layout = 'layout_with_fr',type="full") %>% #visIgraphLayout(layout = "layout_with_sugiyama")
   visNodes(color = list(highlight = "yellow",label_context="red"),borderWidth = 2, size=100,
            scaling = list(label = list(enabled = TRUE))) %>% ##border = "grey", background = "lightblue",
@@ -205,5 +157,4 @@ network<-visNetwork(nodes2, edges2, idToLabel=T,width="100%", height = "1000px")
   visLegend() %>%
   visEdges(arrows = "to", color=list(color="lightgrey",highlight="yellow"))
 network
-
 visSave(network, file = paste(dir,"/html/",disease,"_morecount_",limit,"freq_network_highlight_210813.html",sep=""))
